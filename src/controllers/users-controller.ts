@@ -61,10 +61,17 @@ const login = async (req: Request, res: Response): Promise<void> => {
 
     const expiresIn = 60 * 60; //1 hour
 
+    const JWT_SECRET = (): string => {
+      if (process.env.JWT_SECRET) {
+        return process.env.JWT_SECRET;
+      } else {
+        throw { code: 404, message: 'Invalid process jwt' };
+      }
+    };
+
     const token = jwt.sign(
       { userId: user._id, email: user.email },
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      process.env.JWT_SECRET!,
+      JWT_SECRET(),
       { expiresIn }
     );
     res.send({ token, expiresIn });
