@@ -3,6 +3,7 @@ import Users from '../db/schemas/user';
 import { mongo } from 'mongoose';
 import bcrypt from 'bcrypt';
 import { sendError } from '../utils/catch';
+import jwt from 'jsonwebtoken';
 
 const getUsers = async (req: Request, res: Response): Promise<void> => {
   const users = await Users.find().select({ password: 0, __v: 0 });
@@ -57,7 +58,16 @@ const login = async (req: Request, res: Response): Promise<void> => {
     if (!isOk) {
       throw { code: 401, message: 'Invalid password' };
     }
-    res.send({ token: 'kdwqodkasiojfsdifjsidjas', expiresIn: 600 });
+
+    const expiresIn = 60 * 60; //1 hour
+
+    const token = jwt.sign(
+      { userId: user._id, email: user.email },
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      process.env.JWT_SECRET!,
+      { expiresIn }
+    );
+    res.send({ token, expiresIn });
   } catch (e) {
     sendError(res, e);
   }
